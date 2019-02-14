@@ -1,11 +1,3 @@
-// Motor Pins
-#define LEFT_MOTOR_APWM   10
-#define LEFT_MOTOR_AIN1   6
-#define LEFT_MOTOR_AIN2   5
-
-#define RIGHT_MOTOR_BIN1  7
-#define RIGHT_MOTOR_BIN2  8
-#define RIGHT_MOTOR_BPWM  9
 
 //#define TOP_ICR 0x03FF
 
@@ -46,30 +38,43 @@ void analogWrite16(uint8_t pin, uint16_t val)
     case 10: OCR1B = val; break;
   }
 }
-
-void MotorControl(int out){
+void StopMotors(){
+  analogWrite16(RIGHT_MOTOR_BPWM,1);
+  analogWrite16(LEFT_MOTOR_APWM,1);
+}
+void MotorControl(uint8_t whichMotor, int out){
   
   // Sets direction
   if (out > 0){
-    digitalWrite(RIGHT_MOTOR_BIN1,HIGH);
-    digitalWrite(RIGHT_MOTOR_BIN2,LOW);
-    digitalWrite(LEFT_MOTOR_AIN1,LOW);
-    digitalWrite(LEFT_MOTOR_AIN2,HIGH);
+    if(whichMotor == LEFT_MOTOR_APWM){
+      digitalWrite(LEFT_MOTOR_AIN1,LOW);
+      digitalWrite(LEFT_MOTOR_AIN2,HIGH);
+      analogWrite16(LEFT_MOTOR_APWM,out);
+    }else{
+      digitalWrite(RIGHT_MOTOR_BIN1,HIGH);
+      digitalWrite(RIGHT_MOTOR_BIN2,LOW);
+      analogWrite16(RIGHT_MOTOR_BPWM,out);
+    }
+    
+    
   }else{
-    digitalWrite(RIGHT_MOTOR_BIN1,LOW);
-    digitalWrite(RIGHT_MOTOR_BIN2,HIGH);
-    digitalWrite(LEFT_MOTOR_AIN1,HIGH);
-    digitalWrite(LEFT_MOTOR_AIN2,LOW);
+    out*=-1;
+    if(whichMotor == RIGHT_MOTOR_BPWM){
+      digitalWrite(RIGHT_MOTOR_BIN1,LOW);
+      digitalWrite(RIGHT_MOTOR_BIN2,HIGH);
+      analogWrite16(RIGHT_MOTOR_BPWM,out);
+    }else{
+      digitalWrite(LEFT_MOTOR_AIN1,HIGH);
+      digitalWrite(LEFT_MOTOR_AIN2,LOW);
+      analogWrite16(LEFT_MOTOR_APWM,out);
+    }  
   }
   
-  int vel = abs(out);
-  if (vel<0)
-    vel=0;
-  if (vel > resolution-50 )
-    vel=resolution-50;
-  
-  //Serial.println(out);
-  analogWrite16(RIGHT_MOTOR_BPWM,vel);
-  analogWrite16(LEFT_MOTOR_APWM,vel);
-  
+//  int vel = abs(out);
+//  if (vel<0)
+//    vel=0;
+//  if (vel > resolution-50 )
+//    vel=resolution-50;
+//  
+  //Serial.println(out); 
 }

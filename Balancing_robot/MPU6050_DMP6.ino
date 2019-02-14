@@ -127,15 +127,18 @@ void GetIMUReadings() {
     static int incremental = 1;
     static long lastRightEncoderCount = 0;
     //static int desiredSpeed = 0;
-    if (millis() - lastMilli >= 10) { // every 10 millisecond
-      if (roll > -45 && roll < 45) MotorControl(Compute(roll)); // Sends the real roll angle -> Roll - InitialRoll
-      else MotorControl(0);
+    long dT = millis() - lastMilli; 
+    if ( dT >= 10) { // every 10 millisecond
+      if (roll > -45 && roll < 45){
+        double pwmTiltAngle = ComputeAnglePID(roll);
+        double pwmTurnAngle = ComputeTurnAnglePID(yall);
+        double pwmRight = pwmTiltAngle-pwmTurnAngle;
+        double pwmLeft = pwmTiltAngle+pwmTurnAngle;
+        MotorControl(RIGHT_MOTOR_BPWM, pwmRight); // Sends the real roll angle -> Roll - InitialRoll
+        MotorControl(LEFT_MOTOR_APWM, pwmLeft); // Sends the real roll angle -> Roll - InitialRoll
+      }
+      else StopMotors();
       lastMilli = millis();
-//      Serial.print(roll);
-//      Serial.print(" , ");
-//      Serial.print(getLeftMotorSpeed());
-//      Serial.print(" , ");
-//      Serial.println(getRightMotorSpeed());
     }
   }
 
@@ -168,18 +171,18 @@ void GetIMUReadings() {
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
+    //static bool firstrun = true;
+    //static double yawOffset = 0;
     yall = ypr[0] * 180 / M_PI;
     pitch = ypr[1] * 180 / M_PI;
     roll = ypr[2] * 180 / M_PI;
-//
-//                Serial.print("ypr\t");
-//                Serial.print(yall);
-//                Serial.print("\t");
-//                Serial.print(pitch);
-//                Serial.print("\t");
-//                Serial.println(roll);
-
-
+//    Serial.print("ypr\t");
+    Serial.print(yall);
+    Serial.print("  ");
+//    Serial.print(pitch);
+//    Serial.print("\t");
+    Serial.println(roll);
+    //if(firstrun){yawOffset = yall; firstrun=false;}
     // blink LED to indicate activity
     blinkState = !blinkState;
     digitalWrite(LED_PIN, blinkState);

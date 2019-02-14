@@ -1,5 +1,15 @@
 #include <QuadratureEncoder.h>
 #include <EEPROM.h>
+
+// Motor Pins
+#define LEFT_MOTOR_APWM   10
+#define LEFT_MOTOR_AIN1   6
+#define LEFT_MOTOR_AIN2   5
+
+#define RIGHT_MOTOR_BIN1  7
+#define RIGHT_MOTOR_BIN2  8
+#define RIGHT_MOTOR_BPWM  9
+
 Encoders leftEncoders(A1,A0);
 Encoders rightEncoders(3,4);
 
@@ -30,18 +40,19 @@ void loop() {
         //Serial.println(mygain);
         switch(whichGain){
         case 'p':
-          setKp(serialValue); break;
+          setKpTurnAngle(serialValue); break;
         case 'i':
-          setKi(serialValue); break;
+          setKiTurnAngle(serialValue); break;
         case 'd': 
-          setKd(serialValue); break;
+          setKdTurnAngle(serialValue); break;
         case 'b': 
           setDB(serialValue); break;
         case 's': 
-          setdesiredAngle(serialValue); break;
+          setdesiredTurnAngle(serialValue); break;
         case 'e': 
           save2EEPROM(serialValue); break;
       }
+      printTurnAngleInfo();
     }else{
       Serial.readStringUntil('\n');
     }
@@ -71,17 +82,17 @@ double getRightMotorSpeed(){
 void initEEPROM(){
   double params[3]; //  Kp Ki Kd
   EEPROM.get(0,params);
-  setKp(params[0]);
-  setKi(params[1]);
-  setKd(params[2]);
+  setKpAngle(params[0]);
+  setKiAngle(params[1]);
+  setKdAngle(params[2]);
 }
 
 void save2EEPROM(int crc){
   if(crc==100){
     double params[3]; 
-    params[0] = getKp();
-    params[1] = getKi();
-    params[2] = getKd();
+    params[0] = getKpAngle();
+    params[1] = getKiAngle();
+    params[2] = getKdAngle();
     EEPROM.put(0,params);
     Serial.println("---------------EEPROM Updated----------------");
   }else{
