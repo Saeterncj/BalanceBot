@@ -16,9 +16,28 @@ double ComputeTurnAnglePID(double actualTurnAngle)
   static float lastActualTurnAngle = 0;
   static double integralError = 0;
   double error = desiredTurnAngle - actualTurnAngle;
+
+  
+  if(error  > 180){
+    error -= 360;
+    actualTurnAngle += 360;
+  }
+  if(error < -180){
+    error+=360;
+    actualTurnAngle -= 360;
+  }
   
   //derivative Ki_TurnAngleck
   double dactualTurnAngle = (lastActualTurnAngle -actualTurnAngle);
+  
+  if(dactualTurnAngle > 180){
+    dactualTurnAngle -= 360;
+    lastActualTurnAngle -= 360;
+  }
+  if(dactualTurnAngle < -180){
+    dactualTurnAngle += 360;
+    lastActualTurnAngle +=360;
+  }
   
   // Handle Integral Windup with Clamping
   if (output < resolution && output > -resolution) {

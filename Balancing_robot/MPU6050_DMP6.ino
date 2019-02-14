@@ -134,8 +134,8 @@ void GetIMUReadings() {
         double pwmTurnAngle = ComputeTurnAnglePID(yall);
         double pwmRight = pwmTiltAngle-pwmTurnAngle;
         double pwmLeft = pwmTiltAngle+pwmTurnAngle;
-        MotorControl(RIGHT_MOTOR_BPWM, pwmRight); // Sends the real roll angle -> Roll - InitialRoll
-        MotorControl(LEFT_MOTOR_APWM, pwmLeft); // Sends the real roll angle -> Roll - InitialRoll
+        MotorControl(RIGHT_MOTOR_BPWM, pwmRight); 
+        MotorControl(LEFT_MOTOR_APWM, pwmLeft);
       }
       else StopMotors();
       lastMilli = millis();
@@ -174,6 +174,8 @@ void GetIMUReadings() {
     //static bool firstrun = true;
     //static double yawOffset = 0;
     yall = ypr[0] * 180 / M_PI;
+//    yall*=100;
+//    yall = map(yall, -18000, 18000 , 0 , 36000)/100.0; //convert range -180 to 180
     pitch = ypr[1] * 180 / M_PI;
     roll = ypr[2] * 180 / M_PI;
 //    Serial.print("ypr\t");
