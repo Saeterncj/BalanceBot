@@ -1,25 +1,11 @@
-// I2C device class (I2Cdev) demonstration Arduino sketch for MPU6050 class using DMP (MotionApps v2.0)
-// 6/21/2012 by Jeff Rowberg <jeff@rowberg.net>
-// Updates should (hopefully) always be available at https://github.com/jrowberg/i2cdevlib
 #define LIBCALL_ENABLEINTERRUPT
 #include <EnableInterrupt.h>
-// I2Cdev and MPU6050 must be installed as libraries, or else the .cpp/.h files
-// for both classes must be in the include path of your project
 #include "I2Cdev.h"
 
 #include "MPU6050_6Axis_MotionApps20.h"
-//#include "MPU6050.h" // not necessary if using MotionApps include file
-
-// Arduino Wire library is required if I2Cdev I2CDEV_ARDUINO_WIRE implementation
-// is used in I2Cdev.h
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
-#endif
 
 MPU6050 mpu;
-
-
-
 
 #define LED_PIN 13 // (Arduino is 13, Teensy is 11, Teensy++ is 6)
 bool blinkState = false;
@@ -36,33 +22,21 @@ uint8_t fifoBuffer[64]; // FIFO storage buffer
 Quaternion q;           // [w, x, y, z]         quaternion container
 VectorFloat gravity;    // [x, y, z]            gravity vector
 float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
-
-
-
-
-// ================================================================
-// ===               INTERRUPT DETECTION ROUTINE                ===
-// ================================================================
+float yall, pitch, roll;
 
 volatile bool mpuInterrupt = false;     // indicates whether MPU interrupt pin has gone high
 void dmpDataReady() {
   mpuInterrupt = true;
 }
 
-
-
 // ================================================================
 // ===                      INITIAL SETUP                       ===
 // ================================================================
 
-void InitSensors() {
+void initMPU() {
   // join I2C bus (I2Cdev library doesn't do this automatically)
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
   Wire.begin();
   TWBR = 24; // 400kHz I2C clock (200kHz if CPU is 8MHz)
-#elif I2CDEV_IMPLEMENTATION == I2CDEV_BUILTIN_FASTWIRE
-  Fastwire::setup(400, true);
-#endif
   Serial.begin(115200);
   // initialize device
   Serial.println(F("Initializing I2C devices..."));
@@ -81,7 +55,7 @@ void InitSensors() {
   mpu.setZGyroOffset(34);
   mpu.setXAccelOffset(-3266);
   mpu.setYAccelOffset(-1698);
-  mpu.setZAccelOffset(1409); // 1688 factory default for my test chip
+  mpu.setZAccelOffset(1409);
 
   // make sure it worked (returns 0 if so)
   if (devStatus == 0) {
@@ -116,29 +90,37 @@ void InitSensors() {
 // ===                    MAIN PROGRAM LOOP                     ===
 // ================================================================
 
-void GetIMUReadings() {
+void calcPID() {
   // if programming failed, don't try to do anything
   if (!dmpReady) return;
 
   // wait for MPU interrupt or extra packet(s) available
   while (!mpuInterrupt && fifoCount < packetSize) {
-    static unsigned long lastMilli = 0;
+    static unsigned long lastMicro = 0;
     static bool cwDirection = true; // assume initial direction(positive pwm) is clockwise
     static int incremental = 1;
     static long lastRightEncoderCount = 0;
     //static int desiredSpeed = 0;
-    long dT = millis() - lastMilli; 
-    if ( dT >= 10) { // every 10 millisecond
+    unsigned long dT = micros() - lastMicro; 
+    if ( dT >= 10000) { // every 10 millisecond
       if (roll > -45 && roll < 45){
-        double pwmTiltAngle = ComputeAnglePID(roll);
+        double pwmEncoder = ComputeEncoderPID(getAverageEncoderCount());
+        double pwmTiltAngle = ComputeAnglePID(roll+pwmEncoder);
         double pwmTurnAngle = ComputeTurnAnglePID(yall);
+        
         double pwmRight = pwmTiltAngle-pwmTurnAngle;
         double pwmLeft = pwmTiltAngle+pwmTurnAngle;
-        MotorControl(RIGHT_MOTOR_BPWM, pwmRight); 
-        MotorControl(LEFT_MOTOR_APWM, pwmLeft);
+        
+        motorControl(RIGHT_MOTOR_BPWM, pwmRight); 
+        motorControl(LEFT_MOTOR_APWM, pwmLeft);
       }
-      else StopMotors();
-      lastMilli = millis();
+      else{
+        stopMotors();
+        setDesiredEncoder(0);
+        leftEncoders.setEncoderCount(0);
+        rightEncoders.setEncoderCount(0);
+      }
+      lastMicro = micros();    
     }
   }
 
@@ -167,23 +149,15 @@ void GetIMUReadings() {
     // (this lets us immediately read more without waiting for an interrupt)
     fifoCount -= packetSize;
 
-    // display Euler angles in degrees
+    // display YPR angles in degrees
     mpu.dmpGetQuaternion(&q, fifoBuffer);
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-    //static bool firstrun = true;
-    //static double yawOffset = 0;
+//    static bool firstrun = true;
+//    static double yawOffset = 0;
     yall = ypr[0] * 180 / M_PI;
-//    yall*=100;
-//    yall = map(yall, -18000, 18000 , 0 , 36000)/100.0; //convert range -180 to 180
     pitch = ypr[1] * 180 / M_PI;
     roll = ypr[2] * 180 / M_PI;
-//    Serial.print("ypr\t");
-    Serial.print(yall);
-    Serial.print("  ");
-//    Serial.print(pitch);
-//    Serial.print("\t");
-    Serial.println(roll);
     //if(firstrun){yawOffset = yall; firstrun=false;}
     // blink LED to indicate activity
     blinkState = !blinkState;

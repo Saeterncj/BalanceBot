@@ -1,0 +1,24 @@
+Commands for changing Tilt Angle PID stuff:
+	'A' or 'a' for Kp. Ex) A10.02 sets Porportional gain to 10.02
+	'N' or 'n' for Ki. Ex) n.064 sets Integral gain to 0.064
+	'G' or 'g' for Kd. Ex) g84.54 sets Derivative gain to 84.54
+	'L' or 'l' for SetPoint Ex.) L2.54 sets desired angle to 2.554 degree
+	'E123' or 'e123' Save the current Tilt gain to EEPROM.
+Commands for changing Encoder/Position PID stuff:
+	'P' or 'p' for Kp. Ex) P0.054 sets Porportional gain to 0.054
+	'O' or 'o' for Ki. Ex) o0 sets Integral gain to 0.0
+	'S' or 's' for Kd. Ex) S0.2 sets Derivative gain to 0.2
+	'I' or 'i' for SetPoint Ex.) I200 sets desired encoder ct to  200
+	'E456' or 'e456' Save the current Position gain to EEPROM.
+Commands for changing Turn Angle PID stuff:
+	'T' or 't' for Kp. Ex) T5 sets Porportional gain to 5
+	'U' or 'u' for Ki. Ex) U0 sets Integral gain to 0
+	'r' or 'r' for Kd. Ex) r0 sets Derivative gain to 0
+	'D' or 'd' for SetPoint Ex.) L2.54 sets desired angle to 2.554 degree
+	'E789' or 'e789' Sets the current Turn gain to EEPROM.
+
+Commands for printing info.
+	'f1' or 'F1' to toggle print Setpoint and Measurement of each PID every 
+100ms.
+	'f2' or 'F2' will stop prints for f1, and print all the gains for the PIDs
+
