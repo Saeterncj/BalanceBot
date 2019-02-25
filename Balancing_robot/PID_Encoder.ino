@@ -1,10 +1,13 @@
 // PID Variables
-#define MAX_ANGLE 7
+#define MAX_ANGLE_FORWARD 4
+#define MAX_ANGLE_BACKWARD 5
 // You can change this values to adjust the control
 double Kp_Encoder ;         // Proportional value 0.054
 double Ki_Encoder ;           // Integral value
 double Kd_Encoder ;           // Derivative value carpet = 0
 double desiredEncoder = 0;     // Initial desiredEncoder is 0
+double incremental = 2;
+double userDesiredEncoder = 0;
 double lastActualEncoder = 0;
 
 void setKpEncoder(double KP) {
@@ -20,8 +23,11 @@ void setKdEncoder(double KD) {
   printEncoderInfo();
 }
 void setDesiredEncoder(double EncoderCount) {
-  desiredEncoder = EncoderCount;
+  userDesiredEncoder = EncoderCount;
   lastActualEncoder = EncoderCount;
+}
+void setDesiredEncoderSpeed(double increment){
+  incremental = increment;
 }
 double getKpEncoder() {
   return Kp_Encoder;
@@ -41,6 +47,11 @@ double getLastEncoder(){
 // Calculates the PID output
 double ComputeEncoderPID(long encoderCounts )
 {
+  if(desiredEncoder < userDesiredEncoder){
+    desiredEncoder+=incremental;
+  }else{
+    desiredEncoder-=incremental;
+  }
   double actualEncoder = encoderCounts / 10.0;
   static double integralError = 0, output;
   double error = desiredEncoder - actualEncoder;
@@ -48,7 +59,7 @@ double ComputeEncoderPID(long encoderCounts )
   long dactualEncoder = (lastActualEncoder - actualEncoder);
 
   // Handle Integral Windup with Clamping
-  if (output < MAX_ANGLE && output > -MAX_ANGLE) {
+  if (output < MAX_ANGLE_FORWARD && output > -MAX_ANGLE_BACKWARD) {
     integralError += error;
   }
 
@@ -56,8 +67,8 @@ double ComputeEncoderPID(long encoderCounts )
   output = Kp_Encoder * error + Ki_Encoder * integralError + Kd_Encoder * dactualEncoder;
 
   //Saturation
-  if (output > MAX_ANGLE) output = MAX_ANGLE;
-  else if (output < -(MAX_ANGLE)) output = -(MAX_ANGLE);
+  if (output > MAX_ANGLE_FORWARD) output = MAX_ANGLE_FORWARD;
+  else if (output < -(MAX_ANGLE_BACKWARD)) output = -(MAX_ANGLE_BACKWARD);
 
   lastActualEncoder = actualEncoder;
   return output;

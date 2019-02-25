@@ -105,7 +105,9 @@ void calcPID() {
     if ( dT >= 10000) { // every 10 millisecond
       if (roll > -45 && roll < 45){
         double pwmEncoder = ComputeEncoderPID(getAverageEncoderCount());
-        double pwmTiltAngle = ComputeAnglePID(roll+pwmEncoder);
+        setDesiredAngle(-pwmEncoder);
+        //double pwmTiltAngle = ComputeAnglePID(roll+pwmEncoder);
+        double pwmTiltAngle = ComputeAnglePID(roll);
         double pwmTurnAngle = ComputeTurnAnglePID(yall);
         
         double pwmRight = pwmTiltAngle-pwmTurnAngle;

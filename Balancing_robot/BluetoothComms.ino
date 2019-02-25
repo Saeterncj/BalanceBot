@@ -1,7 +1,7 @@
 bool printFlag = false;
 
 char myBuffer[5];
-
+// This is the bluetooth commands
 void btCommands() {
   if (Serial.available()) {
     char whichCommand = Serial.read();
@@ -15,45 +15,46 @@ void btCommands() {
       switch (whichCommand) {
         case 'T':
         case 't':
-          setKpTurnAngle(serialValue);break;
+          setKpTurnAngle(serialValue); break;
         case 'U':
         case 'u':
-          setKiTurnAngle(serialValue);break;
+          setKiTurnAngle(serialValue); break;
         case 'R':
         case 'r':
           setKdTurnAngle(serialValue); break;
         case 'D':
         case 'd':
-          setDesiredTurnAngle(serialValue);break;
-          
+          setDesiredTurnAngle(serialValue); break;
+
         case 'A':
         case 'a':
-          setKpAngle(serialValue);break;
+          setKpAngle(serialValue); break;
         case 'N':
         case 'n':
-          setKiAngle(serialValue);break;
+          setKiAngle(serialValue); break;
         case 'G':
         case 'g':
           setKdAngle(serialValue); break;
         case 'L':
         case 'l':
-          setDesiredAngle(serialValue);break;
-          
+          setDesiredAngle(serialValue); break;
+
         case 'P':
         case 'p':
-          setKpEncoder(serialValue);break;
+          setKpEncoder(serialValue); break;
         case 'O':
         case 'o':
-          setKiEncoder(serialValue);break;
+          setKiEncoder(serialValue); break;
         case 'S':
         case 's':
-          setKdEncoder(serialValue);break;
+          setKdEncoder(serialValue); break;
         case 'I':
+          setDesiredEncoder(serialValue); break;
         case 'i':
-          setDesiredEncoder(serialValue);break;
-          
+          setDesiredEncoderSpeed(serialValue); break;
+
         case 'b':
-          setDB(serialValue);break;
+          setDB(serialValue); break;
         case 'E':
         case 'e':
           save2EEPROM(serialValue); break;
@@ -97,14 +98,14 @@ void save2EEPROM(int crc) {
 }
 
 void setPrintFlag(int whichFlag) {
-  if(whichFlag ==1){
+  if (whichFlag == 1) {
     printFlag = (printFlag) ? false : true;
-  }else if(whichFlag ==2){
+  } else if (whichFlag == 2) {
     printFlag = false;
     printTiltAngleInfo();
     printEncoderInfo();
     printTurnAngleInfo();
-  } 
+  }
 }
 
 void printInfo() {
